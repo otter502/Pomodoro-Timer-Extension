@@ -138,26 +138,23 @@ function minutesToTimeDisplay(timeInMinutes) {
     let hours = ~~(timeInMinutes / 60);
     let minutes = ~~(timeInMinutes % 60);
     let seconds = ~~((timeInMinutes % 1) * 60);
+
     return(
-        ((hours) ? hours + "h\n" : "") + 
-        ((minutes || hours) ? minutes + "m\n" : "") + 
-        ((minutes || hours || seconds) ? seconds + "s" : "")
+        ((hours) ? hours.toString().padStart(2,"0") + ":" : "") + 
+        ((minutes || hours) ? minutes.toString().padStart(2,"0") + ":" : "") + 
+        ((minutes || hours || seconds) ? seconds.toString().padStart(2,"0") + "s" : "")
     );
+    return('${hours}')
 }
 
 var x = setInterval(async () => {
 
     let paused = (await chrome.storage.session.get("paused")).paused;
-    try {
-        let timeLeftValue = (paused) ? (await chrome.storage.session.get(pausedAlarmInfoKey)).pausedAlarmInfo.timeLeft :
-            ((await chrome.alarms.get("main")).scheduledTime - Date.now())/60000;
-        
-        timeLeftP.innerText =  minutesToTimeDisplay(timeLeftValue);
-    } catch{ 
-        // await skipAlarm();
-        console.log("err timer error");
-    }
-
+    let timeLeftValue = (paused) ? (await chrome.storage.session.get(pausedAlarmInfoKey)).pausedAlarmInfo.timeLeft :
+        ((await chrome.alarms.get("main")).scheduledTime - Date.now())/60000;
+    
+    timeLeftP.innerText =  minutesToTimeDisplay(timeLeftValue);
+    
 }, 100);
 
 sleep(100)
