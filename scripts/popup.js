@@ -3,7 +3,7 @@ let resetButton = document.getElementById("reset");
 let skipButton = document.getElementById("skip");
 let timeLeftP = document.getElementById("timeLeft");
 
-const breakTime = 0.1
+const breakTime = 5
 const workTime = 25
 
 const stateArr = ["work", "break"];
