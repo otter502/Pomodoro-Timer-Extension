@@ -3,9 +3,9 @@ let resetButton = document.getElementById("reset");
 let skipButton = document.getElementById("skip");
 let timeLeftP = document.getElementById("timeLeft");
 
-const timeLengths = (await chrome.storage.session.get("timeLengths")).timeLengths;
-const breakTime = timeLengths.break;
-const workTime = timeLengths.work;
+const breakTime = 0.1
+const workTime = 25
+
 const stateArr = ["work", "break"];
 const pausedAlarmInfoKey = "pausedAlarmInfo";
 
@@ -34,14 +34,22 @@ function setIconToState(iconState) {
 }
 
 
+async function updatePauseButton(){
+    let alarm = (await chrome.alarms.get("main"))
+    playPauseButton.innerHTML = (alarm == undefined) ? "resume" : "pause";
+}
+
 async function createAlarm(state) {
+    // timeLengths = (await chrome.storage.session.get("timeLengths")).timeLengths
     let time = 0;
     switch (state) {
         case "work":
+            // time = timeLengths.work;
             time = workTime;
             break;
         case "break":
-            time = breakTime
+            // time = timeLengths.break;
+            time = breakTime;
             break;
         default:
             time = 100;
@@ -52,10 +60,6 @@ async function createAlarm(state) {
     console.log(time);
 }
 
-async function updatePauseButton(){
-    let alarm = (await chrome.alarms.get("main"))
-    playPauseButton.innerHTML = (alarm == undefined) ? "resume" : "pause";
-}
 
 async function pauseAlarm() {
     let alarm = (await chrome.alarms.get("main"))
@@ -65,7 +69,8 @@ async function pauseAlarm() {
     await chrome.storage.session.set({"paused": true})
     chrome.alarms.clear("main");
 
-    setIconToState("paused")
+    setIconToState("paused");
+    updatePauseButton();
 }
 
 async function resumeAlarm(){
@@ -77,6 +82,7 @@ async function resumeAlarm(){
     await chrome.storage.session.set({"paused": false})
 
     setIconToState(currState);
+    updatePauseButton();
 }
 
 async function resetAlarm() {
@@ -103,7 +109,9 @@ async function skipAlarm() {
         pauseAlarm();
     }
 
-    setIconToState(currState);
+    sleep(100);
+    setIconToState((await chrome.storage.session.get("state")).state);
+    updatePauseButton();
 }
 
 
@@ -117,7 +125,6 @@ playPauseButton.addEventListener('click', async () => {
         pauseAlarm();
     }
     console.log(paused);
-    updatePauseButton();
 });
 
 skipButton.addEventListener('click', async () => {
@@ -148,13 +155,23 @@ function minutesToTimeDisplay(timeInMinutes) {
 }
 
 var x = setInterval(async () => {
-
-    let paused = (await chrome.storage.session.get("paused")).paused;
-    let timeLeftValue = (paused) ? (await chrome.storage.session.get(pausedAlarmInfoKey)).pausedAlarmInfo.timeLeft :
-        ((await chrome.alarms.get("main")).scheduledTime - Date.now())/60000;
-    
-    timeLeftP.innerText =  minutesToTimeDisplay(timeLeftValue);
-    
+    // try {
+        let paused = (await chrome.storage.session.get("paused")).paused;
+        //do a is paused check, then a undefined alarm check, if its underfined have the output be something like "timer reseting" or something
+        let timeLeftValue;
+        let isLoading = false;
+        if (!paused) {
+            let alarm = await chrome.alarms.get("main");
+            if (alarm !== undefined) timeLeftValue = (alarm.scheduledTime - Date.now())/60000;
+        } else {
+            timeLeftValue = (await chrome.storage.session.get(pausedAlarmInfoKey)).pausedAlarmInfo.timeLeft;
+        }
+        
+        if (timeLeftValue == undefined) timeLeftP.innerText = "loading next timer!"
+        else timeLeftP.innerText =  minutesToTimeDisplay(timeLeftValue);  
+    // } catch (error) {
+    //     console.log("uhoh");
+    // }
 }, 100);
 
 sleep(100)

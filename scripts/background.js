@@ -1,14 +1,22 @@
-chrome.runtime.onInstalled.addListener( async ()=>{
-    await chrome.storage.session.set({"timeLengths": {break: 5, work: 25}});
-    timeLengths = (await chrome.storage.session.get("timeLengths")).timeLengths
+function sleep(ms) {
+    return new Promise(resolve => setTimeout(resolve, ms));
+}
 
+// let timeLengths;
+const startWorkTime = 25;
+const startBreakTime = 5;
+
+chrome.runtime.onInstalled.addListener( async ()=>{
+    await chrome.storage.session.set({"timeLengths": {break: startBreakTime, work: startWorkTime}});
+    // timeLengths = (await chrome.storage.session.get("timeLengths")).timeLengths
+    
     await chrome.storage.session.set({"paused": true})
-    await chrome.storage.session.set({"pausedAlarmInfo": {timeLeft: timeLengths.work}})
+    await chrome.storage.session.set({"pausedAlarmInfo": {timeLeft: startWorkTime}})
     await chrome.storage.session.set({"state": "work"});
     console.log("setters placed");
 });
 
-let timeLengths;
+
 
 
 chrome.alarms.onAlarm.addListener(async () => {
@@ -19,6 +27,9 @@ chrome.alarms.onAlarm.addListener(async () => {
     );
     chrome.notifications.clear("alarm notification");
 
+    skipAlarmBG();
+    
+    let imagePath = link(currState, 256);
     chrome.notifications.create("alarm notification", {
         message: messageString,
         title: "pomodoro",
@@ -26,22 +37,24 @@ chrome.alarms.onAlarm.addListener(async () => {
         iconUrl: "../Images/generic_pomodoro_Timer_256.png",
         priority: 1,
     });
-    skipAlarmBG();
 })
 
 async function skipAlarmBG() {
     let currState = (await chrome.storage.session.get("state")).state
     let paused = (await chrome.storage.session.get("paused")).paused;
+   
     let x = chrome.alarms.clear("main");
-    console.log("cleared? " + x); 
-    if (currState == "work") createAlarm("break");
-    else if (currState == "break") createAlarm("work");
+    if (currState == "work") await createAlarm("break");
+    else if (currState == "break") await createAlarm("work");
     
-    setIconToState(currState);
+    sleep(100);
+    
+    setIconToState((await chrome.storage.session.get("state")).state);
 
 }
 
 async function createAlarm(state) {
+    timeLengths = (await chrome.storage.session.get("timeLengths")).timeLengths
     let time = 0;
     switch (state) {
         case "work":
@@ -60,17 +73,15 @@ async function createAlarm(state) {
 }
 
 
+let link = (type, res) => "../Images/" + (type ? (type + "Mode/" + type + "_") : "generic_") + "pomodoro_Timer_" + res + ".png";
 
 function setIconToState(iconState) {
     //icon states: paused, work, break
-    let icons;
-    let mode = "break";
-    let num = 16;
-    mode = (iconState == "paused") ? "" : mode;
+    let mode = (iconState == "paused") ? "" : iconState;
 
     let link = (type, res) => "../Images/" + (type ? (type + "Mode/" + type + "_") : "generic_") + "pomodoro_Timer_" + res + ".png";
 
-    icons = {
+    let icons = {
         "16": link(mode, 16),
         "32": link(mode, 32),
         "48": link(mode, 48),
