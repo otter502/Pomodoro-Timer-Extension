@@ -1,6 +1,28 @@
 {
-    "manifest_version": 3,
-    "name": "Pomodoro Timer",
-    "version": "0.0",
-    "description": "this chrome extension is a pomodoro timer"
+  "manifest_version": 3,
+  "name": "Pomodoro Timer",
+  "version": "1.0",
+  "description": "this chrome extension is a pomodoro timer",
+  "permissions": ["alarms", "notifications", "storage"],
+
+  "icons": {
+    "16": "Images/generic_pomodoro_Timer_16.png",
+    "32": "Images/generic_pomodoro_Timer_32.png",
+    "48": "Images/generic_pomodoro_Timer_48.png",
+    "128": "Images/generic_pomodoro_Timer_128.png"
+  },
+
+  "action": {
+    "default_popup": "./html/popup.html",
+    "default_icon": {
+      "16": "Images/generic_pomodoro_Timer_16.png",
+      "32": "Images/generic_pomodoro_Timer_32.png",
+      "48": "Images/generic_pomodoro_Timer_48.png",
+      "128": "Images/generic_pomodoro_Timer_128.png"
+    }
+  },
+  "background": {
+    "service_worker": "scripts/background.js"
   }
+
+}

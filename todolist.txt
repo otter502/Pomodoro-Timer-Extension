@@ -1,0 +1,47 @@
+use alarms library from chrome dev to setup the timers
+
+popup to start, stop, and reset the timers
+(and maybe a section for diffrent sized breaks or work times with the default being 25 work 5 break)
+
+badge text = timer (with a hide timer option in the popup)
+the icon changes color based on break or work
+
+alarms:
+https://developer.chrome.com/docs/extensions/reference/alarms/
+
+actions (badges / icons):
+https://developer.chrome.com/docs/extensions/reference/action/
+
+storage (time lengths and other data): 
+https://developer.chrome.com/docs/extensions/reference/storage/
+
+
+for now since I am the only one using it I am going to do just 25 min and 5 min and clicking the icon resets it
+
+chrome storage class:
+
+class storageData{
+    //type being session, sync, or local
+    constructor(key, type){
+        this.key = key;
+        this.type = type;
+    }
+    
+    get(){
+        chrome.storage[this.type].get([this.key]);
+    }
+    set(value){
+        chrome.storage[this.type].set({[this.key]: value});
+    }
+}
+
+
+okay there will be two js files
+
+popup.js
+background.js
+
+background.js handles the notifications and the color changes
+
+popup.js handles setting and reseting and pausing the alarm
+
